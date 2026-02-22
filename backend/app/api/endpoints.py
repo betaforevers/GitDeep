@@ -78,7 +78,7 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
         
         # Plagiarism / Originality Check
         duplication_pct, dupe_pairs = plagiarism_engine.calculate_internal_duplication(git_analyzer.tmp_dir)
-        originality_res = plagiarism_engine.check_external_originality(repo_data, git_analyzer.tmp_dir, file_metrics_res.get('hotspots', []), language=submission.language)
+        originality_res = plagiarism_engine.check_external_originality(repo_data, git_analyzer.tmp_dir, file_metrics_res.get('hotspots', []))
         
         plagiarism_res = {
             "internal_duplication_pct": duplication_pct,
@@ -87,7 +87,7 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
         }
         
         reasoning_res = reasoning_engine.synthesize_report(
-            repo_data, bus_factor_res, decay_res, nlp_res, releases_data, file_metrics_res, language=submission.language
+            repo_data, bus_factor_res, decay_res, nlp_res, releases_data, file_metrics_res
         )
         
         details = {
@@ -101,7 +101,7 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
             "plagiarism": plagiarism_res
         }
         
-        pdf_path = report_generator.generate_report(f"{owner}/{repo}", details, reasoning_res, nlp_res, decay_res, language=submission.language)
+        pdf_path = report_generator.generate_report(f"{owner}/{repo}", details, reasoning_res, nlp_res, decay_res)
         filename = os.path.basename(pdf_path)
         # Point to the backend server's reports directory
         pdf_url = f"http://localhost:8000/reports/{filename}"

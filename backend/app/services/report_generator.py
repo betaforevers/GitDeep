@@ -57,66 +57,38 @@ class PDFReportGenerator:
         pdf = FPDF()
         pdf.add_page()
         
-        # Determine Font based on language
-        font_family = "Helvetica" # Default
-        font_url = None
-        font_file = None
+        # Setup Unicode Font (Roboto)
+        font_family = "Helvetica"
+        roboto_reg = os.path.join(self.fonts_dir, "Roboto-Regular.ttf")
+        roboto_b = os.path.join(self.fonts_dir, "Roboto-Bold.ttf")
         
-        if language in ["Turkish", "German", "Spanish", "French", "Russian", "Italian"]:
-            # Download DejaVuSans which supports Cyrillic and extensive Latin
-            font_url = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf"
-            font_family = "DejaVu"
-            font_file = "DejaVuSans"
-        elif language in ["Chinese", "Japanese"]:
-            try:
-                # GitHub allows access to raw fonts for Noto CJK
-                font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf"
-                font_family = "NotoCJK"
-                font_file = "NotoSansCJKsc-Regular"
-            except Exception:
-                pass
-        elif language == "Arabic":
-            font_url = "https://github.com/google/fonts/raw/main/ofl/notosansarabic/NotoSansArabic%5Bwdth%2Cwght%5D.ttf"
-            font_family = "NotoArabic"
-            font_file = "NotoSansArabic"
-            pdf.set_text_shaping(True)
-            
         try:
-            # If standard linux DejaVu exists, map directly
-            if font_family == "DejaVu" and os.path.exists("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"):
-                pdf.add_font("DejaVu", "", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", uni=True)
-            elif font_url:
-                local_font = self._get_font(font_file, font_url)
-                if os.path.exists(local_font):
-                    pdf.add_font(font_family, "", local_font, uni=True)
+            if os.path.exists(roboto_reg):
+                pdf.add_font("Roboto", "", roboto_reg, uni=True)
+                pdf.add_font("Roboto", "I", roboto_reg, uni=True) # Fallback for Italic
+                if os.path.exists(roboto_b):
+                    pdf.add_font("Roboto", "B", roboto_b, uni=True)
+                else:
+                    pdf.add_font("Roboto", "B", roboto_reg, uni=True)
+                font_family = "Roboto"
         except Exception as e:
-            # Fail silently, fallback to Helvetica
-            font_family = "Helvetica"
+            pass
             
         # Title Section
         pdf.set_fill_color(30, 30, 40)
         pdf.set_text_color(255, 255, 255)
-        if font_family != "Helvetica":
-            pdf.set_font(font_family, "", 24)
-        else:
-            pdf.set_font("Helvetica", "B", 24)
+        pdf.set_font(font_family, "B", 24)
             
         pdf.cell(0, 15, " GitDeep Archaeology Report", ln=True, align='L', fill=True)
         
         pdf.set_text_color(0, 0, 0)
         pdf.ln(5)
         
-        if font_family != "Helvetica":
-            pdf.set_font(font_family, "", 16)
-        else:
-            pdf.set_font("Helvetica", "B", 16)
+        pdf.set_font(font_family, "B", 16)
             
         pdf.cell(0, 10, f"Target Repository: {repo_name}", ln=True, align='L')
         
-        if font_family != "Helvetica":
-            pdf.set_font(font_family, "", 10)
-        else:
-            pdf.set_font("Helvetica", "", 10)
+        pdf.set_font(font_family, "", 10)
             
         pdf.set_text_color(100, 100, 100)
         pdf.cell(0, 8, f"Generated At: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True, align='L')
@@ -125,7 +97,7 @@ class PDFReportGenerator:
         pdf.ln(5)
         
         # Status Box
-        pdf.set_font("Helvetica", "B", 14)
+        pdf.set_font(font_family, "B", 14)
         
         # Color code based on status
         status = reasoning['status']
@@ -140,10 +112,7 @@ class PDFReportGenerator:
         pdf.ln(8)
         
         # Summary
-        if font_family != "Helvetica":
-            pdf.set_font(font_family, "", 12)
-        else:
-            pdf.set_font("Helvetica", "", 12)
+        pdf.set_font(font_family, "", 12)
         pdf.multi_cell(0, 8, reasoning['summary'])
         pdf.ln(8)
         
@@ -153,15 +122,12 @@ class PDFReportGenerator:
         pdf.ln(5)
         
         # Key Findings
-        pdf.set_font("Helvetica", "B", 16)
+        pdf.set_font(font_family, "B", 16)
         pdf.set_text_color(40, 40, 100)
         pdf.cell(0, 10, "Key AI Findings", ln=True)
         pdf.set_text_color(0, 0, 0)
         
-        if font_family != "Helvetica":
-            pdf.set_font(font_family, "", 12)
-        else:
-            pdf.set_font("Helvetica", "", 12)
+        pdf.set_font(font_family, "", 12)
             
         for reason in reasoning['reasons']:
             pdf.set_x(15) # Indent
@@ -173,11 +139,11 @@ class PDFReportGenerator:
         pdf.ln(5)
         
         # Raw Metrics Snapshot
-        pdf.set_font("Helvetica", "B", 16)
+        pdf.set_font(font_family, "B", 16)
         pdf.set_text_color(40, 40, 100)
         pdf.cell(0, 10, "Core Technical Snapshot", ln=True)
         pdf.set_text_color(0, 0, 0)
-        pdf.set_font("Helvetica", "", 11)
+        pdf.set_font(font_family, "", 11)
         
         # Create a tiny 2-column layout for metrics
         pdf.set_x(15)
@@ -209,7 +175,7 @@ class PDFReportGenerator:
         # ---- NEW: File Level Analytics ----
         if fm and total_files > 0:
             pdf.add_page()
-            pdf.set_font("Helvetica", "B", 18)
+            pdf.set_font(font_family, "B", 18)
             pdf.set_text_color(40, 100, 40)
             pdf.set_fill_color(240, 250, 240)
             pdf.cell(0, 12, " File-Level Analytics & Health", ln=True, fill=True)
@@ -219,11 +185,11 @@ class PDFReportGenerator:
             # Hotspots
             hotspots = fm.get('hotspots', [])
             if hotspots:
-                pdf.set_font("Helvetica", "B", 14)
+                pdf.set_font(font_family, "B", 14)
                 pdf.set_text_color(220, 80, 80) # Red-ish
                 pdf.cell(0, 8, "Top Refactoring Hotspots (Most Changed)", ln=True)
                 pdf.set_text_color(0, 0, 0)
-                pdf.set_font("Helvetica", "", 11)
+                pdf.set_font(font_family, "", 11)
                 for h in hotspots[:3]:
                     pdf.set_x(15)
                     pdf.cell(0, 7, f"- {h['filename']} ({h['changes']} changes in {h['commit_count']} commits)", ln=True)
@@ -232,11 +198,11 @@ class PDFReportGenerator:
             # Ownership Risks (Bus Factor)
             bus_risks = fm.get('ownership_risks', [])
             if bus_risks:
-                pdf.set_font("Helvetica", "B", 14)
+                pdf.set_font(font_family, "B", 14)
                 pdf.set_text_color(180, 40, 40) # Dark red
                 pdf.cell(0, 8, "Single-Owner Dependencies (Bus Factor Risk)", ln=True)
                 pdf.set_text_color(0, 0, 0)
-                pdf.set_font("Helvetica", "", 11)
+                pdf.set_font(font_family, "", 11)
                 for br in bus_risks[:3]:
                     pdf.set_x(15)
                     pdf.cell(0, 7, f"- {br['filename']} (Owner: {br['primary_owner']}, {br['ownership_pct']:.1f}% of changes)", ln=True)
@@ -245,11 +211,11 @@ class PDFReportGenerator:
             # Inflation Risks (Bloating)
             inflation_risks = fm.get('inflation_risks', [])
             if inflation_risks:
-                pdf.set_font("Helvetica", "B", 14)
+                pdf.set_font(font_family, "B", 14)
                 pdf.set_text_color(200, 100, 150) # Pinkish purple
                 pdf.cell(0, 8, "Technical Debt (High net line growth, low deletion)", ln=True)
                 pdf.set_text_color(0, 0, 0)
-                pdf.set_font("Helvetica", "", 11)
+                pdf.set_font(font_family, "", 11)
                 for ir in inflation_risks[:3]:
                     pdf.set_x(15)
                     pdf.cell(0, 7, f"- {ir['filename']} (Added: +{ir['added']}, Deleted: -{ir['deleted']}, Net: {ir['net_growth']})", ln=True)
@@ -258,11 +224,11 @@ class PDFReportGenerator:
             # Bug Prone
             bug_prone = fm.get('bug_prone', [])
             if bug_prone:
-                pdf.set_font("Helvetica", "B", 14)
+                pdf.set_font(font_family, "B", 14)
                 pdf.set_text_color(220, 150, 40) # Orange-ish
                 pdf.cell(0, 8, "High-Frequency Micro-Updates (Bug Prone)", ln=True)
                 pdf.set_text_color(0, 0, 0)
-                pdf.set_font("Helvetica", "", 11)
+                pdf.set_font(font_family, "", 11)
                 for b in bug_prone[:3]:
                     pdf.set_x(15)
                     pdf.cell(0, 7, f"- {b['filename']} ({b['commit_count']} commits, {b['changes']} total lines changed)", ln=True)
@@ -271,11 +237,11 @@ class PDFReportGenerator:
             # Coupled Files
             top_coupled = fm.get('top_coupled', [])
             if top_coupled:
-                pdf.set_font("Helvetica", "B", 14)
+                pdf.set_font(font_family, "B", 14)
                 pdf.set_text_color(80, 80, 180) # Blue
                 pdf.cell(0, 8, "Highly Coupled Files (Edited together frequently)", ln=True)
                 pdf.set_text_color(0, 0, 0)
-                pdf.set_font("Helvetica", "", 11)
+                pdf.set_font(font_family, "", 11)
                 for tc in top_coupled[:3]:
                     pdf.set_x(15)
                     pdf.cell(0, 7, f"- {tc['file1']} <-> {tc['file2']} (Co-committed {tc['co_commits']} times)", ln=True)
@@ -284,11 +250,11 @@ class PDFReportGenerator:
             # Legacy
             legacy = fm.get('legacy_candidates', [])
             if legacy:
-                pdf.set_font("Helvetica", "B", 14)
+                pdf.set_font(font_family, "B", 14)
                 pdf.set_text_color(100, 100, 150) # Blue-grey
                 pdf.cell(0, 8, "Legacy/Stagnant Files (Touched long ago)", ln=True)
                 pdf.set_text_color(0, 0, 0)
-                pdf.set_font("Helvetica", "", 11)
+                pdf.set_font(font_family, "", 11)
                 for l in legacy[:3]:
                     pdf.set_x(15)
                     # Format last_seen date nicely
@@ -311,13 +277,13 @@ class PDFReportGenerator:
         
         if has_activity or has_intent:
             pdf.add_page()
-            pdf.set_font("Helvetica", "B", 18)
+            pdf.set_font(font_family, "B", 18)
             pdf.set_fill_color(240, 240, 250)
             pdf.cell(0, 12, " Visual Data Analysis", ln=True, fill=True)
             pdf.ln(10)
             
             if has_activity:
-                pdf.set_font("Helvetica", "B", 14)
+                pdf.set_font(font_family, "B", 14)
                 pdf.cell(0, 10, "Activity Trend Graph", ln=True)
                 self._generate_activity_chart(decay_data['activity_trend'], activity_chart_path)
                 pdf.image(activity_chart_path, x=15, w=170)
@@ -330,7 +296,7 @@ class PDFReportGenerator:
                     pdf.set_y(pdf.get_y() + 80) # rough estimate of height
                 
             if has_intent:
-                pdf.set_font("Helvetica", "B", 14)
+                pdf.set_font(font_family, "B", 14)
                 pdf.cell(0, 10, "Development Focus Breakdown", ln=True)
                 self._generate_intent_chart(nlp_data['raw_breakdown'], intent_chart_path)
                 # Center the pie chart roughly
@@ -338,7 +304,7 @@ class PDFReportGenerator:
             
         pdf.add_page()
         pdf.ln(15)
-        pdf.set_font("Helvetica", "I", 8)
+        pdf.set_font(font_family, "I", 8)
         pdf.set_text_color(150, 150, 150)
         pdf.cell(0, 5, "Generated by GitDeep | AI Software Archaeology Engine", ln=True, align='C')
         pdf.cell(0, 5, "Beta Forevers", ln=True, align='C')

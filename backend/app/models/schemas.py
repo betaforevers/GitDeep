@@ -3,7 +3,6 @@ from typing import List, Optional
 
 class RepositorySubmission(BaseModel):
     url: str
-    language: Optional[str] = "English"
 
 class CommitData(BaseModel):
     sha: str

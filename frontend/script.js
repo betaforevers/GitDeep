@@ -26,9 +26,6 @@ form.addEventListener('submit', async (e) => {
     const url = urlInput.value.trim();
     if (!url) return;
 
-    const languageSelect = document.getElementById('report-language');
-    const language = languageSelect ? languageSelect.value : "English";
-
     // Reset UI
     submitBtn.disabled = true;
     submitBtn.textContent = 'Analyzing...';
@@ -66,7 +63,7 @@ form.addEventListener('submit', async (e) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ url, language })
+            body: JSON.stringify({ url })
         });
 
         const data = await response.json();
