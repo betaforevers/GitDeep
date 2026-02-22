@@ -1,0 +1,27 @@
+/home/sirklc/Documents/GitHub/GitDeep/backend/app/services/reasoning_engine.py:2: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+INFO:     Started server process [15610]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:38222 - "POST /api/analyze HTTP/1.1" 200 OK
+/home/sirklc/Documents/GitHub/GitDeep/backend/app/services/metrics_engine.py:57: UserWarning: Converting to PeriodArray/Index representation will drop timezone information.
+  df['month'] = df['date'].dt.to_period('M')
+/home/sirklc/Documents/GitHub/GitDeep/backend/app/services/report_generator.py:48: UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
+  plt.figure(figsize=(6, 6))
+INFO:     127.0.0.1:48334 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48328 - "GET /api/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60772 - "GET /api/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33682 - "OPTIONS /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33686 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60434 - "GET /api/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42422 - "POST /api/analyze HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48220 - "GET /reports/betaforevers_GitDeep_report.pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48220 - "GET /favicon.ico HTTP/1.1" 404 Not Found

@@ -3,7 +3,7 @@ import google.generativeai as genai
 from app.core.config import settings
 
 class ReasoningEngine:
-    def synthesize_report(self, repo_data: dict, bus_factor_data: dict, decay_data: dict, nlp_data: dict, releases_data: list, language: str = "English") -> dict:
+    def synthesize_report(self, repo_data: dict, bus_factor_data: dict, decay_data: dict, nlp_data: dict, releases_data: list, file_metrics_data: dict, language: str = "English") -> dict:
         """
         Synthesizes the individual metrics to generate a conclusion using Gemini API.
         Returns the parsed JSON response.
@@ -41,9 +41,15 @@ class ReasoningEngine:
         Fixes: {nlp_data.get('raw_breakdown', {}).get('Fixes', 0)}
         Chores/Config: {nlp_data.get('raw_breakdown', {}).get('Chores/Config', 0)}
         
+        File-Level Hotspots & Health:
+        Top Legacy Files (dormant for a long time): {', '.join([f['filename'] for f in file_metrics_data.get('legacy_candidates', [])])}
+        Bug-Prone Files (frequent micro-commits): {', '.join([f['filename'] for f in file_metrics_data.get('bug_prone', [])])}
+        Refactor Candidates (Hotspots with massive changes): {', '.join([f['filename'] for f in file_metrics_data.get('hotspots', [])])}
+        
         CRITICAL REQUIREMENTS:
         1. Write the summary and reasons in {language}.
         2. Adopt a strictly ACADEMIC and OBJECTIVE tone. Do not use colloquialisms. Write as if you are publishing a peer-reviewed paper on software engineering metrics.
+        3. Specifically mention the file-level health (e.g. legacy files or hotspots) in your analytical reasons if they pose a risk.
         
         Provide a JSON response with the following strictly formatted keys:
         - "status": One of "HEALTHY", "AT RISK", or "DEAD".

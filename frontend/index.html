@@ -82,78 +82,145 @@
             </section>
 
             <section class="results-section hidden" id="results-section">
-            <div class="glass-card">
-                <div class="card-header">
-                    <h2 id="result-title">Analysis Results</h2>
-                    <span class="badge" id="result-badge">Active</span>
-                </div>
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <span class="metric-label">Stars</span>
-                        <span class="metric-value" id="val-stars">--</span>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="bar-stars" style="width: 0%; background: var(--accent);">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h2 id="result-title">Analysis Results</h2>
+                        <span class="badge" id="result-badge">Active</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <span class="metric-label">Stars</span>
+                            <span class="metric-value" id="val-stars">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-stars"
+                                    style="width: 0%; background: var(--accent);">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Open Issues</span>
+                            <span class="metric-value" id="val-issues">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-issues" style="width: 0%; background: #ffab40;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Bus Factor</span>
+                            <span class="metric-value" id="val-bus-factor">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-bus-factor"
+                                    style="width: 0%; background: var(--success);"></div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Stagnant</span>
+                            <span class="metric-value" id="val-stagnant">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-stagnant"
+                                    style="width: 0%; background: var(--danger);"></div>
                             </div>
                         </div>
                     </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Open Issues</span>
-                        <span class="metric-value" id="val-issues">--</span>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="bar-issues" style="width: 0%; background: #ffab40;">
+
+                    <div class="charts-grid" id="charts-grid"
+                        style="display: none; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                        <div class="chart-container"
+                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; position: relative; height: 300px;">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                        <div class="chart-container"
+                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; position: relative; height: 300px;">
+                            <canvas id="intentChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="file-health-section" id="file-health-section"
+                        style="display: none; margin-bottom: 2rem;">
+                        <h3
+                            style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.4rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            File-Level Context (Last 100 Commits)</h3>
+                        <div class="file-health-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <div class="file-card"
+                                style="background: rgba(255, 82, 82, 0.05); border: 1px solid rgba(255, 82, 82, 0.2); border-radius: 8px; padding: 1rem;">
+                                <h4
+                                    style="color: var(--danger); font-size: 1.1rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                                        <path
+                                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                        </path>
+                                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                    </svg>
+                                    Bug Prone
+                                </h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Frequent
+                                    micro-commits</p>
+                                <ul id="list-bug-prone"
+                                    style="list-style: none; padding: 0; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #ccc;">
+                                </ul>
+                            </div>
+                            <div class="file-card"
+                                style="background: rgba(255, 171, 64, 0.05); border: 1px solid rgba(255, 171, 64, 0.2); border-radius: 8px; padding: 1rem;">
+                                <h4
+                                    style="color: #ffab40; font-size: 1.1rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                                        <path d="M17.5 19c-1.5-1.5-3-1.5-4.5 0-1.5 1.5-3 1.5-4.5 0"></path>
+                                        <path d="M17.5 15c-1.5-1.5-3-1.5-4.5 0-1.5 1.5-3 1.5-4.5 0"></path>
+                                        <path d="M17.5 11c-1.5-1.5-3-1.5-4.5 0-1.5 1.5-3 1.5-4.5 0"></path>
+                                        <path d="M3 3v18h18"></path>
+                                    </svg>
+                                    Hotspots
+                                </h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">High churn
+                                    / massive changes</p>
+                                <ul id="list-hotspots"
+                                    style="list-style: none; padding: 0; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #ccc;">
+                                </ul>
+                            </div>
+                            <div class="file-card"
+                                style="background: rgba(158, 158, 158, 0.05); border: 1px solid rgba(158, 158, 158, 0.2); border-radius: 8px; padding: 1rem;">
+                                <h4
+                                    style="color: #9e9e9e; font-size: 1.1rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                    Legacy Candidates
+                                </h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Dormant
+                                    files untouched recently</p>
+                                <ul id="list-legacy"
+                                    style="list-style: none; padding: 0; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #ccc;">
+                                </ul>
                             </div>
                         </div>
                     </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Bus Factor</span>
-                        <span class="metric-value" id="val-bus-factor">--</span>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="bar-bus-factor"
-                                style="width: 0%; background: var(--success);"></div>
-                        </div>
-                    </div>
-                    <div class="metric-box">
-                        <span class="metric-label">Stagnant</span>
-                        <span class="metric-value" id="val-stagnant">--</span>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="bar-stagnant"
-                                style="width: 0%; background: var(--danger);"></div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="charts-grid" id="charts-grid"
-                    style="display: none; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
-                    <div class="chart-container"
-                        style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; position: relative; height: 300px;">
-                        <canvas id="activityChart"></canvas>
+                    <div class="report-summary-box" id="report-summary-box" style="display: none;">
+                        <h3 style="margin-bottom: 0.5rem; color: var(--accent);">Archeology Summary</h3>
+                        <p id="report-summary-text" style="color: #ccc; line-height: 1.6; margin-bottom: 1.5rem;"></p>
+                        <a id="download-btn" href="#" target="_blank" class="download-button hidden">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round"
+                                style="width: 18px; height: 18px; margin-right: 8px;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download Detailed PDF Report
+                        </a>
                     </div>
-                    <div class="chart-container"
-                        style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; position: relative; height: 300px;">
-                        <canvas id="intentChart"></canvas>
+
+                    <div class="log-output" id="log-output">
+                        Waiting for analysis to complete...
                     </div>
                 </div>
-
-                <div class="report-summary-box" id="report-summary-box" style="display: none;">
-                    <h3 style="margin-bottom: 0.5rem; color: var(--accent);">Archeology Summary</h3>
-                    <p id="report-summary-text" style="color: #ccc; line-height: 1.6; margin-bottom: 1.5rem;"></p>
-                    <a id="download-btn" href="#" target="_blank" class="download-button hidden">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round"
-                            style="width: 18px; height: 18px; margin-right: 8px;">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Download Detailed PDF Report
-                    </a>
-                </div>
-
-                <div class="log-output" id="log-output">
-                    Waiting for analysis to complete...
-                </div>
-            </div>
-        </section>
+            </section>
             <a href="#about-section" class="scroll-indicator" aria-label="Scroll down">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                     stroke-linejoin="round" width="32" height="32">
@@ -162,7 +229,7 @@
             </a>
         </section>
 
-        
+
         <section class="about-section" id="about-section"
             style="margin-top: 4rem; padding-top: 4rem; border-top: 1px solid rgba(255,255,255,0.05);">
             <div style="text-align: center; margin-bottom: 3rem;">
@@ -213,7 +280,7 @@
         <section class="history-section" id="history-section" style="margin-top: 3rem; display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h2 style="font-size: 1.5rem; font-weight: 600; color: var(--text-main);">Recent Analyses</h2>
-                <span style="font-size: 0.9rem; color: var(--text-muted);">Last 50 Repositories</span>
+                <span style="font-size: 0.9rem; color: var(--text-muted);">Last 3 Repositories</span>
             </div>
 
             <div class="history-grid" id="history-track">
@@ -222,7 +289,7 @@
         </section>
     </main>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 </body>
 
 </html>

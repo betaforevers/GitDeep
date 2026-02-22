@@ -18,16 +18,7 @@ function addLog(message) {
     logOutput.scrollTop = logOutput.scrollHeight;
 }
 
-// Auto-analyze when a valid GitHub URL is pasted
-urlInput.addEventListener('input', (e) => {
-    const val = e.target.value.trim();
-    const githubRegex = /^https?:\/\/(www\.)?github\.com\/[^\/]+\/[^\/]+(\/)?$/i;
-
-    // If input matches exactly (e.g. from a paste), auto-submit if not already analyzing
-    if (githubRegex.test(val) && !submitBtn.disabled) {
-        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-    }
-});
+// Auto-analyze was removed to prevent auto trigger on page reload with default URL.
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -46,6 +37,7 @@ form.addEventListener('submit', async (e) => {
     resultsSection.classList.remove('hidden');
     document.getElementById('report-summary-box').style.display = 'none';
     document.getElementById('charts-grid').style.display = 'none';
+    document.getElementById('file-health-section').style.display = 'none';
     document.getElementById('download-btn').classList.add('hidden');
 
     // Reset Progress Bars
@@ -130,6 +122,39 @@ form.addEventListener('submit', async (e) => {
                 }
             }
 
+            // Display File Metrics
+            const fileMetrics = data.details.file_metrics;
+            if (fileMetrics && fileMetrics.total_files_tracked > 0) {
+                document.getElementById('file-health-section').style.display = 'block';
+
+                const renderList = (elementId, items, formatStrFn) => {
+                    const ul = document.getElementById(elementId);
+                    ul.innerHTML = '';
+                    if (!items || items.length === 0) {
+                        ul.innerHTML = '<li style="opacity: 0.5;">None detected</li>';
+                        return;
+                    }
+                    items.forEach(item => {
+                        const li = document.createElement('li');
+                        li.style.marginBottom = '4px';
+                        li.style.whiteSpace = 'nowrap';
+                        li.style.overflow = 'hidden';
+                        li.style.textOverflow = 'ellipsis';
+                        // Limit filename length visually
+                        let shortName = item.filename;
+                        if (shortName.length > 40) {
+                            shortName = "..." + shortName.substring(shortName.length - 37);
+                        }
+                        li.innerHTML = `<span style="color: #fff;" title="${item.filename}">${shortName}</span> <span style="opacity: 0.7;">${formatStrFn(item)}</span>`;
+                        ul.appendChild(li);
+                    });
+                };
+
+                renderList('list-bug-prone', fileMetrics.bug_prone, (i) => `(${i.commit_count} commits)`);
+                renderList('list-hotspots', fileMetrics.hotspots, (i) => `(${i.changes} changes)`);
+                renderList('list-legacy', fileMetrics.legacy_candidates, (i) => `(${i.age_days} days dormant)`);
+            }
+
             // Display Report Summary
             const summaryBox = document.getElementById('report-summary-box');
             const summaryText = document.getElementById('report-summary-text');
@@ -178,11 +203,16 @@ document.addEventListener('DOMContentLoaded', loadHistory);
 
 async function loadHistory() {
     try {
+        console.log("Fetching history from API...");
         const response = await fetch(`${API_BASE_URL}/history`);
-        if (!response.ok) return;
+        if (!response.ok) {
+            console.error("History API returned error", response.status);
+            return;
+        }
 
         const data = await response.json();
         const historyData = data.history || [];
+        console.log(`Fetched ${historyData.length} history items.`);
 
         if (historyData.length === 0) return;
 

@@ -8,6 +8,8 @@ from app.services.metrics_engine import MetricsEngine
 from app.services.nlp_engine import NLPEngine
 from app.services.reasoning_engine import ReasoningEngine
 from app.services.report_generator import PDFReportGenerator
+from app.services.file_metrics_engine import FileMetricsEngine
+from app.services.git_analyzer import GitAnalyzer
 from app.db.database import get_db
 from app.db.models import RepoAnalysisRecord
 from github import RateLimitExceededException
@@ -18,6 +20,8 @@ metrics_engine = MetricsEngine()
 nlp_engine = NLPEngine()
 reasoning_engine = ReasoningEngine()
 report_generator = PDFReportGenerator()
+file_metrics_engine = FileMetricsEngine()
+git_analyzer = GitAnalyzer()
 
 @router.post("/analyze", response_model=RepoAnalysisStatus)
 def analyze_repository(submission: RepositorySubmission, db: Session = Depends(get_db)):
@@ -32,6 +36,30 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
     owner = parts[-2]
     repo = parts[-1]
     
+    # Check for recent analysis in the database (last 6 hours)
+    from datetime import datetime, timedelta
+    six_hours_ago = datetime.utcnow() - timedelta(hours=6)
+    
+    recent_record = db.query(RepoAnalysisRecord).filter(
+        RepoAnalysisRecord.repo_name == f"{owner}/{repo}",
+        RepoAnalysisRecord.created_at >= six_hours_ago
+    ).order_by(RepoAnalysisRecord.created_at.desc()).first()
+
+    if recent_record:
+        # Return the cached analysis
+        details = json.loads(recent_record.metrics_json)
+        return RepoAnalysisStatus(
+            status="success",
+            message=recent_record.summary_text,
+            details=details,
+            chart_data={
+                "activity_trend": {}, # Could be stored if needed, but not critical for cache
+                "intent_breakdown": {}
+            },
+            pdf_url=recent_record.pdf_url,
+            health_score=recent_record.health_score
+        )
+    
     # In Phase 1, we just do a dry-run check to see if we can fetch it
     try:
         repo_data = github_service.get_repo_info(owner, repo)
@@ -42,7 +70,13 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
         decay_res = metrics_engine.calculate_activity_decay(commits_data)
         nlp_res = nlp_engine.analyze_commits(commits_data)
         
-        reasoning_res = reasoning_engine.synthesize_report(repo_data, bus_factor_res, decay_res, nlp_res, releases_data, language=submission.language)
+        # Fast local file extraction mapped over complete history
+        local_commits_data = git_analyzer.clone_and_extract_file_history(url)
+        file_metrics_res = file_metrics_engine.calculate_file_metrics(local_commits_data)
+        
+        reasoning_res = reasoning_engine.synthesize_report(
+            repo_data, bus_factor_res, decay_res, nlp_res, releases_data, file_metrics_res, language=submission.language
+        )
         
         details = {
             "stars": repo_data["stars"], 
@@ -50,7 +84,8 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
             "bus_factor": bus_factor_res["bus_factor"],
             "is_stagnant": decay_res["is_stagnant"],
             "commits_analyzed": len(commits_data),
-            "tech_debt_ratio": nlp_res.get("tech_debt_ratio", 0)
+            "tech_debt_ratio": nlp_res.get("tech_debt_ratio", 0),
+            "file_metrics": file_metrics_res
         }
         
         pdf_path = report_generator.generate_report(f"{owner}/{repo}", details, reasoning_res, nlp_res, decay_res, language=submission.language)
@@ -89,8 +124,8 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
 
 @router.get("/history")
 def get_analysis_history(db: Session = Depends(get_db)):
-    """Retrieve the 50 most recent historical analyses."""
-    records = db.query(RepoAnalysisRecord).order_by(RepoAnalysisRecord.created_at.desc()).limit(50).all()
+    """Retrieve the 3 most recent historical analyses."""
+    records = db.query(RepoAnalysisRecord).order_by(RepoAnalysisRecord.created_at.desc()).limit(3).all()
     history = []
     for r in records:
         history.append({
