@@ -3,6 +3,7 @@ import subprocess
 import shutil
 import uuid
 from typing import List, Dict, Any
+from app.core.config import settings
 
 class GitAnalyzer:
     def __init__(self):
@@ -18,23 +19,35 @@ class GitAnalyzer:
         repo_id = str(uuid.uuid4())
         clone_path = os.path.join(self.tmp_dir, repo_id)
         
+        # Inject PAT to avoid hanging on private repos
+        auth_url = git_url
+        if settings.GITHUB_PAT and git_url.startswith("https://"):
+            auth_url = git_url.replace("https://", f"https://{settings.GITHUB_PAT}@")
+            
         try:
             # 1. Clone Repo (--bare is faster, no working tree needed for logs)
+            # Use env vars to strictly disable any interactive prompts
+            env = os.environ.copy()
+            env["GIT_TERMINAL_PROMPT"] = "0"
+            env["GIT_ASKPASS"] = "echo"
+            env["SSH_ASKPASS"] = "echo"
+
             subprocess.run(
-                ["git", "clone", "--bare", "--filter=blob:none", git_url, clone_path],
+                ["git", "clone", "--bare", "--filter=blob:none", auth_url, clone_path],
                 check=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                timeout=60 # Prevent hanging on massive repos
+                timeout=60, # Prevent hanging on massive repos
+                env=env
             )
             
             # 2. Extract git log
             # We want: commit|date|author\n file_changes...
-            # Format: ^CF^ (delimiter) %H (hash) %cI (iso date) 
-            log_format = "^CF^%H|%cI"
+            # Format: ^CF^ (delimiter) %H (hash) %cI (iso date) %an (author name)
+            log_format = "^CF^%H|%cI|%an"
             
             result = subprocess.run(
-                ["git", "log", f"--format={log_format}", "--name-status"],
+                ["git", "log", f"--format={log_format}", "--numstat"],
                 cwd=clone_path,
                 capture_output=True,
                 text=True,
@@ -55,13 +68,8 @@ class GitAnalyzer:
                 
     def _parse_git_log(self, log_output: str) -> List[Dict[str, Any]]:
         """
-        Parses output from `git log --format=^CF^%H|%cI --name-status`
-        Returns a list of commit dictionaries with file status.
-        (We don't need changes/lines modified for hotspot calculation if we have frequent commits,
-         but we could try to use --numstat instead of --name-status if needed.
-         Since user asked to just view the files, frequency is usually enough.)
-         
-         We will use --numstat if we want 'changes', but name-status is faster. Let's start with just tracking edits.
+        Parses output from `git log --format=^CF^%H|%cI|%an --numstat`
+        Returns a list of commit dictionaries with file stats.
         """
         commits = []
         current_commit = None
@@ -73,27 +81,32 @@ class GitAnalyzer:
             if line.startswith("^CF^"):
                 # New commit block
                 parts = line[4:].split("|")
-                if len(parts) >= 2:
+                if len(parts) >= 3:
                     current_commit = {
                         "sha": parts[0],
                         "date": parts[1],
+                        "author": parts[2],
                         "files": []
                     }
                     commits.append(current_commit)
             else:
-                # File change line (e.g., M file.py OR A file.py OR D file.py)
+                # File change line using --numstat (e.g., 10\t5\tfile.py)
                 if current_commit:
-                    parts = line.split(maxsplit=1)
-                    if len(parts) >= 2:
-                        status = parts[0]
-                        filename = parts[1]
+                    parts = line.split("\t")
+                    if len(parts) >= 3:
+                        added = parts[0]
+                        deleted = parts[1]
+                        filename = parts[2]
                         
-                        # We just track that it was modified (changes=1 as a baseline since --numstat is slow)
-                        # We might refine this to use --numstat if exact lines are needed.
+                        # Handle binary files which show '-' instead of numbers
+                        add_count = int(added) if added.isdigit() else 0
+                        del_count = int(deleted) if deleted.isdigit() else 0
+                        
                         current_commit["files"].append({
                             "filename": filename,
-                            "status": status,
-                            "changes": 1 # Placeholder for frequency count
+                            "added": add_count,
+                            "deleted": del_count,
+                            "changes": add_count + del_count
                         })
         
         return commits

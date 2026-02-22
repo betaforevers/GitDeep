@@ -22,7 +22,14 @@ class ReasoningEngine:
             
         genai.configure(api_key=settings.GEMINI_API_KEY)
         
-        # We need to construct a rich context for the AI
+        # Extract advanced file metrics for the prompt
+        legacy_files = [f['filename'] for f in file_metrics_data.get('legacy_candidates', [])]
+        bug_prone = [f['filename'] for f in file_metrics_data.get('bug_prone', [])]
+        hotspots = [f['filename'] for f in file_metrics_data.get('hotspots', [])]
+        bus_factor_files = [f['filename'] for f in file_metrics_data.get('ownership_risks', [])]
+        bloated_files = [f['filename'] for f in file_metrics_data.get('inflation_risks', [])]
+        coupled_pairs = [f"{c['file1']} & {c['file2']} ({c['co_commits']} times)" for c in file_metrics_data.get('top_coupled', [])]
+        
         prompt = f"""
         You are an expert AI Software Archaeologist. Your task is to analyze the following GitHub repository metadata and determine if the project is "dead", "at_risk", or "healthy".
         
@@ -41,21 +48,24 @@ class ReasoningEngine:
         Fixes: {nlp_data.get('raw_breakdown', {}).get('Fixes', 0)}
         Chores/Config: {nlp_data.get('raw_breakdown', {}).get('Chores/Config', 0)}
         
-        File-Level Hotspots & Health:
-        Top Legacy Files (dormant for a long time): {', '.join([f['filename'] for f in file_metrics_data.get('legacy_candidates', [])])}
-        Bug-Prone Files (frequent micro-commits): {', '.join([f['filename'] for f in file_metrics_data.get('bug_prone', [])])}
-        Refactor Candidates (Hotspots with massive changes): {', '.join([f['filename'] for f in file_metrics_data.get('hotspots', [])])}
+        Advanced File-Level Analytics & Rhythm:
+        - Legacy Files (Dormant): {', '.join(legacy_files) if legacy_files else 'None detected'}
+        - Bug-Prone (Micro-commits): {', '.join(bug_prone) if bug_prone else 'None detected'}
+        - Refactor Hotspots: {', '.join(hotspots) if hotspots else 'None detected'}
+        - High Bus-Factor Files (Single owner >80%): {', '.join(bus_factor_files) if bus_factor_files else 'None detected'}
+        - Bloated Files (High net growth, low deletion): {', '.join(bloated_files) if bloated_files else 'None detected'}
+        - Highly Coupled Files (Edited together): {', '.join(coupled_pairs) if coupled_pairs else 'None detected'}
         
         CRITICAL REQUIREMENTS:
         1. Write the summary and reasons in {language}.
         2. Adopt a strictly ACADEMIC and OBJECTIVE tone. Do not use colloquialisms. Write as if you are publishing a peer-reviewed paper on software engineering metrics.
-        3. Specifically mention the file-level health (e.g. legacy files or hotspots) in your analytical reasons if they pose a risk.
+        3. Specifically mention the file-level health (e.g. single-owner risks, bloated files, highly coupled pairs, bug-prone areas) in your analytical reasons if they pose a risk. Use this data to diagnose structural decay.
         
         Provide a JSON response with the following strictly formatted keys:
         - "status": One of "HEALTHY", "AT RISK", or "DEAD".
         - "health_score": An integer from 0 to 100.
         - "summary": A 2-3 sentence overarching conclusion for the project in an academic tone ({language}).
-        - "reasons": An array of strings, listing 3 to 5 deeply analytical reasons based on the data provided, written in an academic tone ({language}).
+        - "reasons": An array of strings, listing 3 to 5 deeply analytical reasons based on the data provided, written in an academic tone ({language}). Discuss the rhythm and file risks directly if present.
         
         Return ONLY valid JSON. Wait until the end of the JSON to stop. Do not use block quotes like ```json. Just raw text starting with {{.
         """

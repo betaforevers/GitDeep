@@ -10,6 +10,7 @@ from app.services.reasoning_engine import ReasoningEngine
 from app.services.report_generator import PDFReportGenerator
 from app.services.file_metrics_engine import FileMetricsEngine
 from app.services.git_analyzer import GitAnalyzer
+from app.services.plagiarism_engine import PlagiarismEngine
 from app.db.database import get_db
 from app.db.models import RepoAnalysisRecord
 from github import RateLimitExceededException
@@ -22,6 +23,7 @@ reasoning_engine = ReasoningEngine()
 report_generator = PDFReportGenerator()
 file_metrics_engine = FileMetricsEngine()
 git_analyzer = GitAnalyzer()
+plagiarism_engine = PlagiarismEngine(git_analyzer.tmp_dir)
 
 @router.post("/analyze", response_model=RepoAnalysisStatus)
 def analyze_repository(submission: RepositorySubmission, db: Session = Depends(get_db)):
@@ -74,6 +76,16 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
         local_commits_data = git_analyzer.clone_and_extract_file_history(url)
         file_metrics_res = file_metrics_engine.calculate_file_metrics(local_commits_data)
         
+        # Plagiarism / Originality Check
+        duplication_pct, dupe_pairs = plagiarism_engine.calculate_internal_duplication(git_analyzer.tmp_dir)
+        originality_res = plagiarism_engine.check_external_originality(repo_data, git_analyzer.tmp_dir, file_metrics_res.get('hotspots', []), language=submission.language)
+        
+        plagiarism_res = {
+            "internal_duplication_pct": duplication_pct,
+            "high_duplication_pairs": dupe_pairs,
+            "originality": originality_res
+        }
+        
         reasoning_res = reasoning_engine.synthesize_report(
             repo_data, bus_factor_res, decay_res, nlp_res, releases_data, file_metrics_res, language=submission.language
         )
@@ -85,7 +97,8 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
             "is_stagnant": decay_res["is_stagnant"],
             "commits_analyzed": len(commits_data),
             "tech_debt_ratio": nlp_res.get("tech_debt_ratio", 0),
-            "file_metrics": file_metrics_res
+            "file_metrics": file_metrics_res,
+            "plagiarism": plagiarism_res
         }
         
         pdf_path = report_generator.generate_report(f"{owner}/{repo}", details, reasoning_res, nlp_res, decay_res, language=submission.language)
