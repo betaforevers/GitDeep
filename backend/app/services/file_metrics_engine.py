@@ -159,6 +159,26 @@ class FileMetricsEngine:
         inflation_risks = [r for r in valid_results if r["is_prod"] and r["net_growth"] > 200 and r["deleted"] < (r["added"] * 0.1)]
         inflation_risks = sorted(inflation_risks, key=lambda x: x["net_growth"], reverse=True)[:5]
         for i in inflation_risks: tags[i['filename']].append("Bloated 📈")
+
+        #6. Night Owl
+        night_owls = [r for r in valid_results if r["night_pct"] > 50]
+        night_owls = sorted(night_owls, key=lambda x: x["night_pct"], reverse=True)[:5]
+        for n in night_owls: tags[n['filename']].append("Night Owl 🦉")
+
+        #7. Weekend Warrior
+        weekend_warriors = [r for r in valid_results if r["weekend_pct"] > 50]
+        weekend_warriors = sorted(weekend_warriors, key=lambda x: x["weekend_pct"], reverse=True)[:5]
+        for w in weekend_warriors: tags[w['filename']].append("Weekend Warrior 🍻")
+
+        #8. Test Files
+        test_files = [r for r in valid_results if r["is_test"]]
+        test_files = sorted(test_files, key=lambda x: x["changes"], reverse=True)[:5]
+        for t in test_files: tags[t['filename']].append("Test File 🧪")
+
+        #9. Prod Files
+        prod_files = [r for r in valid_results if r["is_prod"]]
+        prod_files = sorted(prod_files, key=lambda x: x["changes"], reverse=True)[:5]
+        for p in prod_files: tags[p['filename']].append("Prod File 🏭")
         
         # Classify Healthy
         for r in valid_results:
@@ -179,6 +199,10 @@ class FileMetricsEngine:
             "legacy_candidates": legacy_candidates,
             "ownership_risks": ownership_risks,
             "inflation_risks": inflation_risks,
+            "night_owls": night_owls,
+            "weekend_warriors": weekend_warriors,
+            "test_files": test_files,
+            "prod_files": prod_files,
             "top_coupled": top_coupled,
             "total_files_tracked": len(results),
             "tags": dict(tags)

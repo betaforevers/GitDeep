@@ -3,27 +3,10 @@ import json
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.models.schemas import RepositorySubmission, RepoAnalysisStatus
-from app.services.github_service import GitHubService
-from app.services.metrics_engine import MetricsEngine
-from app.services.nlp_engine import NLPEngine
-from app.services.reasoning_engine import ReasoningEngine
-from app.services.report_generator import PDFReportGenerator
-from app.services.file_metrics_engine import FileMetricsEngine
-from app.services.git_analyzer import GitAnalyzer
-from app.services.plagiarism_engine import PlagiarismEngine
-from app.db.database import get_db
-from app.db.models import RepoAnalysisRecord
-from github import RateLimitExceededException
+from app.services.analysis_orchestrator import AnalysisOrchestrator
 
 router = APIRouter()
-github_service = GitHubService()
-metrics_engine = MetricsEngine()
-nlp_engine = NLPEngine()
-reasoning_engine = ReasoningEngine()
-report_generator = PDFReportGenerator()
-file_metrics_engine = FileMetricsEngine()
-git_analyzer = GitAnalyzer()
-plagiarism_engine = PlagiarismEngine(git_analyzer.tmp_dir)
+orchestrator = AnalysisOrchestrator()
 
 @router.post("/analyze", response_model=RepoAnalysisStatus)
 def analyze_repository(submission: RepositorySubmission, db: Session = Depends(get_db)):
@@ -62,74 +45,9 @@ def analyze_repository(submission: RepositorySubmission, db: Session = Depends(g
             health_score=recent_record.health_score
         )
     
-    # In Phase 1, we just do a dry-run check to see if we can fetch it
     try:
-        repo_data = github_service.get_repo_info(owner, repo)
-        commits_data = github_service.get_recent_commits(owner, repo, limit=200)
-        releases_data = github_service.get_recent_releases(owner, repo, limit=10)
-        
-        bus_factor_res = metrics_engine.calculate_bus_factor(commits_data)
-        decay_res = metrics_engine.calculate_activity_decay(commits_data)
-        nlp_res = nlp_engine.analyze_commits(commits_data)
-        
-        # Fast local file extraction mapped over complete history
-        local_commits_data = git_analyzer.clone_and_extract_file_history(url)
-        file_metrics_res = file_metrics_engine.calculate_file_metrics(local_commits_data)
-        
-        # Plagiarism / Originality Check
-        duplication_pct, dupe_pairs = plagiarism_engine.calculate_internal_duplication(git_analyzer.tmp_dir)
-        originality_res = plagiarism_engine.check_external_originality(repo_data, git_analyzer.tmp_dir, file_metrics_res.get('hotspots', []))
-        
-        plagiarism_res = {
-            "internal_duplication_pct": duplication_pct,
-            "high_duplication_pairs": dupe_pairs,
-            "originality": originality_res
-        }
-        
-        reasoning_res = reasoning_engine.synthesize_report(
-            repo_data, bus_factor_res, decay_res, nlp_res, releases_data, file_metrics_res
-        )
-        
-        details = {
-            "stars": repo_data["stars"], 
-            "open_issues": repo_data["open_issues"],
-            "bus_factor": bus_factor_res["bus_factor"],
-            "is_stagnant": decay_res["is_stagnant"],
-            "commits_analyzed": len(commits_data),
-            "tech_debt_ratio": nlp_res.get("tech_debt_ratio", 0),
-            "file_metrics": file_metrics_res,
-            "plagiarism": plagiarism_res
-        }
-        
-        pdf_path = report_generator.generate_report(f"{owner}/{repo}", details, reasoning_res, nlp_res, decay_res)
-        filename = os.path.basename(pdf_path)
-        # Point to the backend server's reports directory
-        pdf_url = f"http://localhost:8000/reports/{filename}"
-        
-        # Save to SQLite Database
-        db_record = RepoAnalysisRecord(
-            repo_name=f"{owner}/{repo}",
-            health_status=reasoning_res.get("status", "UNKNOWN"),
-            health_score=reasoning_res.get("health_score", 0),
-            summary_text=reasoning_res.get("summary", ""),
-            metrics_json=json.dumps(details),
-            pdf_url=pdf_url
-        )
-        db.add(db_record)
-        db.commit()
-        db.refresh(db_record)
-        
-        return RepoAnalysisStatus(
-            status="success",
-            message=reasoning_res["summary"],
-            details=details,
-            chart_data={
-                "activity_trend": decay_res.get("activity_trend", {}),
-                "intent_breakdown": nlp_res.get("raw_breakdown", {})
-            },
-            pdf_url=pdf_url,
-            health_score=reasoning_res["health_score"]
-        )
+        result = orchestrator.analyze_repository(url, owner, repo, db)
+        return RepoAnalysisStatus(**result)
     except RateLimitExceededException:
         raise HTTPException(status_code=429, detail="GitHub API Rate Limit exceeded! Unauthenticated requests are limited to 60 per hour. Please wait, or add a GITHUB_PAT to your .env file.")
     except Exception as e:

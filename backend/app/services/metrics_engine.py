@@ -12,14 +12,14 @@ class MetricsEngine:
         Calculate the bus factor (minimum number of developers that hold >50% of the commits).
         """
         if not commits:
-            return {"bus_factor": 0, "top_contributors": []}
+            return {"bus_factor": 0, "total_contributors": 0, "top_contributors": []}
             
         # Create a DataFrame
         df = pd.DataFrame(commits)
         
         # In a real scenario we'd use 'author' or user ID. Let's assume author is provided.
         if "author" not in df.columns:
-            return {"bus_factor": 0, "top_contributors": []}
+            return {"bus_factor": 0, "total_contributors": 0, "top_contributors": []}
             
         author_counts = df['author'].value_counts()
         total_commits = len(commits)
@@ -31,12 +31,18 @@ class MetricsEngine:
         for author, count in author_counts.items():
             bus_factor += 1
             cumulative += count
-            top_contributors.append({"author": author, "commits": int(count)})
+            pct = (count / total_commits) * 100
+            top_contributors.append({
+                "author": author, 
+                "commits": int(count),
+                "ownership_pct": round(pct, 1)
+            })
             if cumulative > total_commits * 0.5:
                 break
                 
         return {
             "bus_factor": bus_factor,
+            "total_contributors": len(author_counts),
             "top_contributors": top_contributors
         }
     
