@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitDeep | GitHub Project Archaeology</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="stars-bg"></div>
+
+    <main class="container">
+        <section class="hero-section">
+            <header>
+                <div class="logo-container">
+                    <div class="logo-icon"></div>
+                    <h1>GitDeep</h1>
+                </div>
+                <p class="subtitle">Software Archaeology & Analysis Platform</p>
+            </header>
+
+            <section class="search-section">
+                <form id="analyze-form">
+                    <div class="input-group">
+                        <svg class="git-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+                            <path d="M9 18c-4.51 2-5-2-7-2" />
+                        </svg>
+                        <input type="url" id="repo-url" placeholder="https://github.com/owner/repository" required
+                            autocomplete="off">
+                        <button type="submit" id="submit-btn">Analyze Repo</button>
+                    </div>
+                </form>
+                <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+                    <a href="https://github.com/betaforevers/GitDeep" target="_blank"
+                        class="action-link-btn github-link"
+                        style="flex: 0 1 auto; padding: 0.6rem 1rem; font-size: 0.9rem;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="margin-right: 6px;">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                        GitHub Repo
+                    </a>
+                    <a href="https://betaforevers.com" target="_blank" class="action-link-btn web-link"
+                        style="flex: 0 1 auto; padding: 0.6rem 1rem; font-size: 0.9rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" width="16" height="16"
+                            style="margin-right: 6px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                            </path>
+                        </svg>
+                        Beta Forevers
+                    </a>
+                </div>
+                <div class="status-message" id="status-message"></div>
+            </section>
+
+            <section class="results-section hidden" id="results-section">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h2 id="result-title">Analysis Results</h2>
+                        <span class="badge" id="result-badge">Active</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <span class="metric-label">Stars</span>
+                            <span class="metric-value" id="val-stars">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-stars"
+                                    style="width: 0%; background: var(--accent);">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Open Issues</span>
+                            <span class="metric-value" id="val-issues">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-issues" style="width: 0%; background: #ffab40;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Bus Factor</span>
+                            <span class="metric-value" id="val-bus-factor">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-bus-factor"
+                                    style="width: 0%; background: var(--success);"></div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Stagnant</span>
+                            <span class="metric-value" id="val-stagnant">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-stagnant"
+                                    style="width: 0%; background: var(--danger);"></div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Code Quality</span>
+                            <span class="metric-value" id="val-quality">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-quality" style="width: 0%; background: #00bcd4;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Plagiarism Risk</span>
+                            <span class="metric-value" id="val-plagiarism">--</span>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="bar-plagiarism"
+                                    style="width: 0%; background: #9c27b0;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid" id="charts-grid"
+                        style="display: none; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                        <div class="chart-container"
+                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; position: relative; height: 300px;">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                        <div class="chart-container"
+                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; position: relative; height: 300px;">
+                            <canvas id="intentChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="file-health-section" id="file-health-section"
+                        style="display: none; margin-bottom: 2rem;">
+                        <h3
+                            style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.4rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            File-Level Context (Last 100 Commits)</h3>
+                        <div class="file-health-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <div class="file-card"
+                                style="background: rgba(255, 82, 82, 0.05); border: 1px solid rgba(255, 82, 82, 0.2); border-radius: 8px; padding: 1rem;">
+                                <h4
+                                    style="color: var(--danger); font-size: 1.1rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                                        <path
+                                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                        </path>
+                                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                    </svg>
+                                    Bug Prone
+                                </h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Frequent
+                                    micro-commits</p>
+                                <ul id="list-bug-prone"
+                                    style="list-style: none; padding: 0; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #ccc;">
+                                </ul>
+                            </div>
+                            <div class="file-card"
+                                style="background: rgba(255, 171, 64, 0.05); border: 1px solid rgba(255, 171, 64, 0.2); border-radius: 8px; padding: 1rem;">
+                                <h4
+                                    style="color: #ffab40; font-size: 1.1rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                                        <path d="M17.5 19c-1.5-1.5-3-1.5-4.5 0-1.5 1.5-3 1.5-4.5 0"></path>
+                                        <path d="M17.5 15c-1.5-1.5-3-1.5-4.5 0-1.5 1.5-3 1.5-4.5 0"></path>
+                                        <path d="M17.5 11c-1.5-1.5-3-1.5-4.5 0-1.5 1.5-3 1.5-4.5 0"></path>
+                                        <path d="M3 3v18h18"></path>
+                                    </svg>
+                                    Hotspots
+                                </h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">High churn
+                                    / massive changes</p>
+                                <ul id="list-hotspots"
+                                    style="list-style: none; padding: 0; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #ccc;">
+                                </ul>
+                            </div>
+                            <div class="file-card"
+                                style="background: rgba(158, 158, 158, 0.05); border: 1px solid rgba(158, 158, 158, 0.2); border-radius: 8px; padding: 1rem;">
+                                <h4
+                                    style="color: #9e9e9e; font-size: 1.1rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                    Legacy Candidates
+                                </h4>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Dormant
+                                    files untouched recently</p>
+                                <ul id="list-legacy"
+                                    style="list-style: none; padding: 0; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #ccc;">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-summary-box" id="report-summary-box" style="display: none;">
+                        <h3 style="margin-bottom: 0.5rem; color: var(--accent);">Archeology Summary</h3>
+                        <p id="report-summary-text" style="color: #ccc; line-height: 1.6; margin-bottom: 1.5rem;"></p>
+                        <a id="download-btn" href="#" target="_blank" class="download-button hidden">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round"
+                                style="width: 18px; height: 18px; margin-right: 8px;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download Detailed PDF Report
+                        </a>
+                    </div>
+
+                    <div class="log-output" id="log-output">
+                        Waiting for analysis to complete...
+                    </div>
+                </div>
+            </section>
+            <a href="#about-section" class="scroll-indicator" aria-label="Scroll down">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" width="32" height="32">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </a>
+        </section>
+
+
+        <section class="about-section" id="about-section"
+            style="margin-top: 4rem; padding-top: 4rem; border-top: 1px solid rgba(255,255,255,0.05);">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2rem; font-weight: 700;">How GitDeep Works</h2>
+                <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 1.1rem;">Advanced AI analysis to
+                    determine the health and longevity of any public GitHub project.</p>
+            </div>
+            <div class="about-grid">
+                <div class="about-card">
+                    <div class="about-icon" style="color: var(--accent); margin-bottom: 1.2rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Activity & Decay</h3>
+                    <p>Detects abandoned projects by calculating the mathematical rate of commit stagnation and
+                        developer drop-off over time.</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon" style="color: #00e676; margin-bottom: 1.2rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3>Bus Factor Risk</h3>
+                    <p>Analyzes contributor distribution to determine if the project relies too heavily on a single
+                        central developer.</p>
+                </div>
+                <div class="about-card">
+                    <div class="about-icon" style="color: #ffab40; margin-bottom: 1.2rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <h3>Semantic Intent</h3>
+                    <p>Uses Natural Language Processing to read commit messages and classify work into active features
+                        vs. chore maintenance.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="history-section" id="history-section" style="margin-top: 3rem; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: var(--text-main);">Recent Analyses</h2>
+                <span style="font-size: 0.9rem; color: var(--text-muted);">Last 3 Repositories</span>
+            </div>
+
+            <div class="history-grid" id="history-track">
+                <!-- Cards injected via JS -->
+            </div>
+        </section>
+        <!-- Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
