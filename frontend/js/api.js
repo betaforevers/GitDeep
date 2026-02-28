@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Determine API URL based on environment (Docker vs Local)
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? `http://${window.location.hostname}:8000/api`
@@ -5,6 +6,11 @@ const API_BASE_URL = window.location.hostname === 'localhost' || window.location
 
 export async function analyzeRepository(url, onProgress) {
     // 1. Start the task
+=======
+const API_BASE_URL = 'http://localhost:8000/api';
+
+export async function analyzeRepository(url) {
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
     const response = await fetch(`${API_BASE_URL}/analyze`, {
         method: 'POST',
         headers: {
@@ -16,6 +22,7 @@ export async function analyzeRepository(url, onProgress) {
     const data = await response.json();
 
     if (!response.ok) {
+<<<<<<< HEAD
         throw new Error(data.detail || 'Analysis failed to start');
     }
 
@@ -58,6 +65,12 @@ async function pollTaskStatus(taskId, onProgress) {
     }
 
     throw new Error('Analysis timed out after 5 minutes.');
+=======
+        throw new Error(data.detail || 'Analysis failed');
+    }
+
+    return data;
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
 }
 
 export async function getHistory() {

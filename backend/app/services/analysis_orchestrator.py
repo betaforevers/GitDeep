@@ -46,8 +46,11 @@ class AnalysisOrchestrator:
             "originality": originality_res
         }
         
+<<<<<<< HEAD
         code_quality_res = self.metrics_engine.calculate_code_quality(file_metrics_res.get('hotspots', []))
         
+=======
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
         reasoning_res = self.reasoning_engine.synthesize_report(
             repo_data, bus_factor_res, decay_res, nlp_res, releases_data, file_metrics_res
         )
@@ -61,8 +64,12 @@ class AnalysisOrchestrator:
             "commits_analyzed": len(commits_data),
             "tech_debt_ratio": nlp_res.get("tech_debt_ratio", 0),
             "file_metrics": file_metrics_res,
+<<<<<<< HEAD
             "plagiarism": plagiarism_res,
             "code_quality": code_quality_res
+=======
+            "plagiarism": plagiarism_res
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
         }
         
         pdf_path = self.report_generator.generate_report(f"{owner}/{repo}", details, reasoning_res, nlp_res, decay_res)

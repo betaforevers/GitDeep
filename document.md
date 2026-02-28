@@ -3,12 +3,24 @@ AI Code Archaeology – Research SaaS Technical Plan
 This project is a research-oriented SaaS platform designed to analyze open-source software repositories
 and determine why projects stagnate or die. The system focuses on offline, deep analysis and produces
 structured reports rather than continuous dashboards.
+<<<<<<< HEAD
 ## 2. Development Phases
 * **Phase 0 – Definition & Research** (Completed): Define 'dead project' criteria, metrics, scoring weights, and exclusion rules.
 * **Phase 1 – Data Ingestion** (Completed): Collect commit history, contributors, issues, PRs, releases via PyGithub APIs with rate limit handling.
 * **Phase 2 – Core Metrics Engine** (Completed): Compute stagnation, bus factor, contributor churn, activity decay, and file-level bug-prone hotspots.
 * **Phase 3 – NLP & AI Analysis** (Completed): Semantic analysis of commit messages using Gemini API to detect technical debt and intent collapse. Incorporates a Plagiarism Engine to detect replicated code patterns.
 * **Phase 4 – Failure Reasoning Engine** (Completed): Combine metrics and AI outputs to generate natural-language 'Why it died?' explanations.
+=======
+2. Development Phases
+● Phase 0 – Definition & Research: Define 'dead project' criteria, metrics, scoring weights, and
+exclusion rules.
+● Phase 1 – Data Ingestion: Collect commit history, contributors, issues, PRs, releases via APIs.
+● Phase 2 – Core Metrics Engine: Compute stagnation, bus factor, contributor churn, activity decay.
+● Phase 3 – NLP Analysis: Semantic analysis of commit messages to detect technical debt and intent
+collapse.
+● Phase 4 – Failure Reasoning Engine: Combine metrics and NLP outputs to generate 'Why it died?'
+explanations.
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
 ● Phase 5 – Report Generation: Produce PDF/Markdown reports with scores, graphs, and
 comparisons.
 ● Phase 6 – SaaS Layer: Repo submission, async job handling, status tracking, and report delivery.

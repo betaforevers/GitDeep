@@ -8,6 +8,7 @@ async function handleAnalyze(url) {
     addLog(`Initiating analysis for: ${url}`);
 
     try {
+<<<<<<< HEAD
         const data = await analyzeRepository(url, (msg) => {
             addLog(`Status Update: ${msg}`);
         });
@@ -18,6 +19,13 @@ async function handleAnalyze(url) {
 
         if (data) {
             displayResults({ "status": "success", "message": "Analysis Complete", "details": data.details, "chart_data": data.chart_data, "pdf_url": data.pdf_url, "health_score": data.health_score });
+=======
+        const data = await analyzeRepository(url);
+        addLog(`Response received: ${data.message}`);
+
+        if (data.details) {
+            displayResults(data);
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
         }
     } catch (error) {
         console.error('Error:', error);

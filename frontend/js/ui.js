@@ -38,8 +38,11 @@ export function resetUI() {
     document.getElementById('bar-issues').style.width = '0%';
     document.getElementById('bar-bus-factor').style.width = '0%';
     document.getElementById('bar-stagnant').style.width = '0%';
+<<<<<<< HEAD
     document.getElementById('bar-quality').style.width = '0%';
     document.getElementById('bar-plagiarism').style.width = '0%';
+=======
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -59,6 +62,7 @@ export function displayResults(data) {
     document.getElementById('val-bus-factor').textContent = data.details.bus_factor;
     document.getElementById('val-stagnant').textContent = data.details.is_stagnant ? "Yes" : "No";
 
+<<<<<<< HEAD
     // Add quality and plagiarism logic
     const qualityLabel = data.details.code_quality ? data.details.code_quality.sqale_rating : "--";
     document.getElementById('val-quality').textContent = qualityLabel;
@@ -70,12 +74,15 @@ export function displayResults(data) {
     }
     document.getElementById('val-plagiarism').textContent = `${plagiarismPct}%`;
 
+=======
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
     setTimeout(() => {
         const starsPx = Math.min((data.details.stars / 1000) * 100, 100);
         const issuesPx = Math.min((data.details.open_issues / 500) * 100, 100);
         const busFactorPx = Math.min((data.details.bus_factor / 10) * 100, 100);
         const stagnantPx = data.details.is_stagnant ? 100 : 0;
 
+<<<<<<< HEAD
         // Let's create visual widths for the new metrics
         let qualityPx = 0;
         if (qualityLabel === 'A') qualityPx = 100;
@@ -84,12 +91,17 @@ export function displayResults(data) {
 
         const plagiarismPx = Math.min(plagiarismPct, 100);
 
+=======
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
         document.getElementById('bar-stars').style.width = `${starsPx}%`;
         document.getElementById('bar-issues').style.width = `${issuesPx}%`;
         document.getElementById('bar-bus-factor').style.width = `${busFactorPx}%`;
         document.getElementById('bar-stagnant').style.width = `${stagnantPx}%`;
+<<<<<<< HEAD
         document.getElementById('bar-quality').style.width = `${qualityPx}%`;
         document.getElementById('bar-plagiarism').style.width = `${plagiarismPx}%`;
+=======
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
     }, 100);
 
     updateBadge(data);
@@ -182,7 +194,10 @@ function displaySummary(data) {
 }
 
 export function displayError(error) {
+<<<<<<< HEAD
     elements.logOutput.innerHTML = '';
+=======
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
     elements.statusMessage.textContent = error.message;
     elements.statusMessage.className = 'status-message error';
     addLog(`<span style="color: #ff5252">Error: ${error.message}</span>`);

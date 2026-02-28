@@ -87,6 +87,7 @@ class MetricsEngine:
             "is_stagnant": decay_score >= 0.8,
             "activity_trend": trend_data
         }
+<<<<<<< HEAD
 
     def calculate_code_quality(self, files: List[Dict[str, Any]]) -> dict:
         """
@@ -115,3 +116,5 @@ class MetricsEngine:
             "vulnerabilities": vulnerabilities,
             "code_smells": code_smells
         }
+=======
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99

@@ -6,15 +6,24 @@ GitDeep is an advanced "Software Archaeology" and repository analysis tool. It d
 
 * **Activity & Decay Tracking:** Mathematically calculates commit stagnation and developer drop-off rates.
 * **Bus Factor Risk:** Analyzes if a project relies too heavily on a single central developer.
+<<<<<<< HEAD
 * **Semantic Intent (NLP):** Uses natural language processing (Google Gemini) to categorize commits (e.g., feature work vs. technical debt).
 * **Plagiarism Detection:** Scans code patterns to detect potential copied or overly duplicated logic.
 * **Multi-language PDF Reports:** Generates professional, academic-style PDF reports with embedded charts.
 * **Smart Caching:** SQLite-based caching for recent analyses to improve response times and save API quotas.
+=======
+* **Semantic Intent (NLP):** Uses natural language processing to categorize commits (e.g., feature work vs. technical debt).
+* **Multi-language PDF Reports:** Generates professional, academic-style PDF reports in 10 different languages with embedded charts.
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
 * **Interactive SPA Interface:** Beautiful, responsive Vanilla JS frontend with Chart.js visualization and smooth page transitions.
 
 ## Tech Stack 🛠️
 
+<<<<<<< HEAD
 * **Backend:** Python, FastAPI, SQLite (Caching & History), SQLAlchemy, FPDF2 (for PDF Generation), PyGithub, Gemini API.
+=======
+* **Backend:** Python, FastAPI, SQLite, SQLAlchemy, FPDF2 (for PDF Generation), PyGithub.
+>>>>>>> bde3534b1529b1c615e6852836f6d32d6cef0f99
 * **Frontend:** HTML5, Vanilla CSS3 (Glassmorphism UI), Vanilla JavaScript, Chart.js.
 
 ## Getting Started 🚀
